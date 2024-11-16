@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from .managers import UserManager
-from django.utils import timezone
+from zoneinfo import ZoneInfo
 
 class User(AbstractBaseUser, PermissionsMixin):
 	email = models.EmailField(max_length=255, unique=True)
@@ -26,13 +26,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class OtpCode(models.Model):
-	phone_number = models.CharField(max_length=11)
+	phone_number = models.CharField(max_length=11,unique=True)
 	code = models.PositiveSmallIntegerField()
 	created_at = models.DateTimeField(auto_now=True)
 
 	@property
 	def is_expired(self):
-		if self.created_at +timedelta(minutes=2) < timezone.now():
+		if self.created_at +timedelta(minutes=2) < datetime.now(tz=ZoneInfo('Asia/Tehran')):
 			self.delete()
 			return True
 		return False
