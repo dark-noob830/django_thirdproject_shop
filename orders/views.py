@@ -1,12 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from home.models import Product
-from .forms import CartAddForm
+from .forms import CartAddForm, CouponApplyForm
 from .cart import Cart
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.conf import settings
-
-from .models import Order, OrderItem
+from django.contrib import messages
+from .models import Order, OrderItem, Coupon
+import datetime
 import requests
 import json
 from django.http import HttpResponse
@@ -38,9 +39,10 @@ class CartRemoveView(View):
 
 
 class DetailOrderView(LoginRequiredMixin, View):
+    form_class = CouponApplyForm
     def get(self, request, order_id):
         order = get_object_or_404(Order, pk=order_id)
-        return render(request, 'orders/order.html', {'order': order})
+        return render(request, 'orders/order.html', {'order': order,'form':self.form_class})
 
 
 class CreateOrderView(LoginRequiredMixin, View):
@@ -72,7 +74,7 @@ class OrderPayView(LoginRequiredMixin, View):
             'order_id': order.id,
         }
         req_data = {
-            "merchant_id": MERCHANT,
+            "merchant_id": settings.MERCHANT,
             "amount": order.get_total_price(),
             "callback_url": CallbackURL,
             "description": description,
@@ -91,7 +93,7 @@ class OrderPayView(LoginRequiredMixin, View):
             return HttpResponse(f"Error code: {e_code}, Error Message: {e_message}")
 
 
-class OrderVerifyView(LoginRequiredMixin, View):
+class VerifyOrderView(LoginRequiredMixin, View):
     def get(self, request):
         order_id = request.session['order_pay']['order_id']
         order = Order.objects.get(id=int(order_id))
@@ -101,7 +103,7 @@ class OrderVerifyView(LoginRequiredMixin, View):
             req_header = {"accept": "application/json",
                           "content-type": "application/json'"}
             req_data = {
-                "merchant_id": MERCHANT,
+                "merchant_id": settings.MERCHANT,
                 "amount": order.get_total_price(),
                 "authority": t_authority
             }
@@ -128,3 +130,22 @@ class OrderVerifyView(LoginRequiredMixin, View):
                 return HttpResponse(f"Error code: {e_code}, Error Message: {e_message}")
         else:
             return HttpResponse('Transaction failed or canceled by user')
+
+
+class CouponApplyView(LoginRequiredMixin, View):
+    form_class = CouponApplyForm
+
+    def post(self, request, order_id):
+        now = datetime.datetime.now()
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['code']
+            try:
+                coupon = Coupon.objects.get(code__exact=code, valid_from__lte=now, valid_to__gte=now, active=True)
+            except Coupon.DoesNotExist:
+                messages.error(request, 'this coupon does not exists', 'danger')
+                return redirect('orders:order_detail', order_id)
+            order = Order.objects.get(id=order_id)
+            order.discount = coupon.discount
+            order.save()
+        return redirect('orders:order_detail', order_id)
