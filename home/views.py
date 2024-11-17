@@ -4,19 +4,24 @@ from .models import Product, Category
 from . import tasks
 from django.contrib import messages
 from utils import IsAdminUserMixin
-# from utils import IsAdminUserMixin
+from orders.forms import CartAddForm
 
 
 class HomeView(View):
 	def get(self, request, category_slug=None):
 		products = Product.objects.filter(available=True)
-		return render(request, 'home/home.html', {'products':products,})
+		categories = Category.objects.filter(is_sub=False)
+		if category_slug:
+			category= get_object_or_404(Category, slug=category_slug)
+			products = products.filter(category=category)
+		return render(request, 'home/home.html', {'products':products,'categories':categories})
 
 
 class ProductDetailView(View):
+	form_class = CartAddForm
 	def get(self, request, slug):
 		product = get_object_or_404(Product, slug=slug)
-
+		form =  self.form_class
 		return render(request, 'home/detail.html', {'product':product, 'form':form})
 
 

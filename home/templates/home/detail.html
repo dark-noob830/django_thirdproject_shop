@@ -4,8 +4,14 @@
     <h2>{{ product.name }}</h2>
     <small>{{ product.created }}</small><br/>
     <p>{{ product.price }} Toman</p>
-    <img src="{{ product.image.url }}" style="width: 300px;">
+    <img src="{{ product.image.url }}" style="width: 300px;" alt="salam">
     <p>{{ product.description|safe }}</p><br/><br/>
 
+
+    <form action="{% url 'orders:cart_add' product.id %}" method="post">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit" value="add to cart">
+    </form>
 
 {% endblock %}
