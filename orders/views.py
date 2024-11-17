@@ -4,6 +4,7 @@ from home.models import Product
 from .forms import CartAddForm
 from .cart import Cart
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.conf import settings
 
 from .models import Order, OrderItem
 import requests
@@ -53,7 +54,10 @@ class CreateOrderView(LoginRequiredMixin, View):
         return redirect('orders:order_detail', order.id)
 
 
-MERCHANT = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+if settings.SANDBOX:
+    sandbox = 'sandbox'
+else:
+    sandbox = 'www'
 ZP_API_REQUEST = "https://api.zarinpal.com/pg/v4/payment/request.json"
 ZP_API_VERIFY = "https://api.zarinpal.com/pg/v4/payment/verify.json"
 ZP_API_STARTPAY = "https://www.zarinpal.com/pg/StartPay/{authority}"
