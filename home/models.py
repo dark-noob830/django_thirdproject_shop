@@ -1,6 +1,6 @@
 from django.db import models
 from django.shortcuts import reverse
-
+from ckeditor.fields import RichTextField
 
 class Category(models.Model):
     sub_category = models.ForeignKey('self', on_delete=models.CASCADE, related_name='scategory', null=True, blank=True)
@@ -26,7 +26,7 @@ class Product(models.Model):
     slug = models.SlugField(max_length=100, unique=True)
     # for media files :  image = models.ImageField(upload_to='products/%Y/%m/%d/')
     image = models.ImageField()
-    description = models.TextField()
+    description = RichTextField()
     price = models.IntegerField()
     available = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)

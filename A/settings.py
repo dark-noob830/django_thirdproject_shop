@@ -43,7 +43,8 @@ INSTALLED_APPS = [
 
     # Third-party apps
     'storages',
-    'django_celery_beat'
+    'django_celery_beat',
+    'ckeditor'
 ]
 
 MIDDLEWARE = [
@@ -86,7 +87,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'django_test',
         'USER': 'postgres',
-        'PASSWORD': '#####',
+        'PASSWORD': '####',
         'HOST': '127.0.0.1',
         'PORT': '5432',
 
@@ -168,3 +169,13 @@ AWS_LOCAL_STORAGE = f'{BASE_DIR}/aws/'
 MERCHANT = "00000000-0000-0000-0000-000000000000"
 
 SANDBOX = True
+
+
+
+# CKEDITOR
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',
+    },
+}
